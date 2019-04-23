@@ -37,8 +37,17 @@ Opt('MustDeclareVars', 1)
 
 
 ; Create input
-GUICreate( "Create new pasient", 400, 60 )
-Global $ctrlName = GUICtrlCreateInput("navn etternavn f.nr", 10, 10, 380, 30 )
+GUICreate( "Create new pasient", 450, 48 )
+
+Global $ctrlFile = GUICtrlCreateLabel("Pasient", 8, 16 )
+;GUICtrlSetFont( $ctrlName, 10, 600 )
+
+Local $contextmenu = GUICtrlCreateContextMenu($ctrlFile)
+
+Local $properItem = GUICtrlCreateMenuItem("Navn Etternavn", $contextmenu)
+Local $upperItem = GUICtrlCreateMenuItem("NAVN ETTERNAVN", $contextmenu)
+
+Global $ctrlName = GUICtrlCreateInput("navn etternavn f.nr", 60, 8, 380, 30 )
 GUICtrlSetFont( $ctrlName, 14, 600 )
 GUICtrlSetState($ctrlName, $GUI_FOCUS)
 
@@ -48,6 +57,7 @@ Global $msg
 Global $arrName
 Global $arrFnr
 
+Global $typetext = 1
 
 
 Do
@@ -60,12 +70,37 @@ Do
 					ParseInput( $arrName )
 					GUICtrlSetState($ctrlName, $GUI_FOCUS)
 
-;~ 			case $ctrlFileText
-;~ 				$var = FileSelectFolder("Choose a folder", "", 1, @WorkingDir )
-;~ 				GUICtrlSetData( $ctrlFileText, $var  )
+			case $GUI_EVENT_SECONDARYDOWN
+
+
+
+				;GUISetState()
+
+				; Run the GUI until the dialog is closed
+				While 1
+
+					Switch GUIGetMsg()
+
+						case $properItem
+							$typetext = 1
+							ExitLoop
+						case $upperItem
+							$typetext = 2
+							ExitLoop
+					EndSwitch
+
+				WEnd
+
+				switch $typetext
+					case 1
+						GUICtrlSetData( $ctrlFile, _StringProper(GUICtrlRead($ctrlFile)))
+					case 2
+						GUICtrlSetData( $ctrlFile, StringUpper(GUICtrlRead($ctrlFile)))
+
+				EndSwitch
 
 			case $GUI_EVENT_CLOSE
-					Exit
+				Exit
 
 		EndSwitch
 
@@ -182,7 +217,10 @@ Func ParseInput( $arrName )
 	$sString = StringReplace( $sString, "#sex#", $sex )
 
 	; Write file
-	$fileoutput = StringReplace( $filetemplate, "_", "_"& StringUpper($name & " " & $surname), -1 )
+	$fileoutput = StringReplace( $filetemplate, "_", "_"& _StringProper($name & " " & $surname), -1 )
+	if $typetext = 2 then
+		$fileoutput = StringReplace( $filetemplate, "_", "_"& StringUpper($name & " " & $surname), -1 )
+	EndIf
 	if FileExists( $fileoutput ) then
 		if MsgBox( 1, "Error", "File "& $fileoutput & " alredy exists. Overwite? ") = 2 then
 			Exit
@@ -197,7 +235,7 @@ Func ParseInput( $arrName )
 	Endif
 
 	$sString  = ""
-	$sString &= "Name : " & StringUpper( $name & " " & $surname ) & @CRLF
+	$sString &= "Name : " & _StringProper( $name & " " & $surname ) & @CRLF
 	$sString &= "Fnr  : " & $fnr & @CRLF
 	$sString &= "Fdato: " & $fdato & "  (" & $sex & $age& ")" & @CRLF
 	;$sString &= "Guid : " & $id & @CRLF & @CRLF
