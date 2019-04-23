@@ -5,6 +5,17 @@
 ;~ #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 
 
+; ================================
+; 13/04/19 - initial prototype
+; 15/04/19 -
+; 17/04/19 - added change filename register by right click
+; 23/04/19 - Fixed bugs
+;	- Sex now identifed correctly - by 9th digit (was by 7th)
+; 	- When cancel file overwrite return to edit (was Exit from program)
+; 	- Write to file in Unocode mode.Can handle norwegian chars (was in Ascii)
+;	- Replaced StringProper to work correctly with norwegian chars
+; ================================
+
 #include <Array.au3>
 #include <string.au3>
 #include <excel.au3>
@@ -29,6 +40,7 @@ Global	$name
 Global	$surname
 Global	$fnr
 Global	$sex
+Global	$sexid
 Global	$fdato
 Global	$id
 Global	$age
@@ -66,15 +78,11 @@ Do
 		switch $msg
 			case $ctrlName
 
-					$arrName = StringSplit( StringStripWS (GUICtrlRead($ctrlName), 7), " " )
-					ParseInput( $arrName )
-					GUICtrlSetState($ctrlName, $GUI_FOCUS)
+				$arrName = StringSplit( StringStripWS (GUICtrlRead($ctrlName), 7), " " )
+				ParseInput( $arrName )
+				GUICtrlSetState($ctrlName, $GUI_FOCUS)
 
 			case $GUI_EVENT_SECONDARYDOWN
-
-
-
-				;GUISetState()
 
 				; Run the GUI until the dialog is closed
 				While 1
@@ -93,7 +101,7 @@ Do
 
 				switch $typetext
 					case 1
-						GUICtrlSetData( $ctrlFile, _StringProper(GUICtrlRead($ctrlFile)))
+						GUICtrlSetData( $ctrlFile, _StringProper1(GUICtrlRead($ctrlFile)))
 					case 2
 						GUICtrlSetData( $ctrlFile, StringUpper(GUICtrlRead($ctrlFile)))
 
@@ -164,13 +172,14 @@ Func ParseInput( $arrName )
 		Return
 	endif
 
-
 	; Get Sex
 	; xxxxxx xx0xx - 0 - kvinne, 1 - mann
-	if mod( StringLeft( $pers,1), 2 ) = 0 Then
-		$sex = "K"
+	if mod( StringRight( $pers,1), 2 ) = 0 Then
+		$sex = "Kvinne"
+		$sexid = 2
 	Else
-		$sex = "M"
+		$sex = "Mann"
+		$sexid = 1
 	EndIf
 
 	; Check Alder
@@ -209,33 +218,44 @@ Func ParseInput( $arrName )
 		MsgBox(0, "Error", "Can't open file" & $filetemplate )
 		Exit
 	endif
-	$sString = StringReplace( $sString, "#name#", _StringProper ($name) )
-	$sString = StringReplace( $sString, "#surname#", _StringProper ($surname) )
+	$sString = StringReplace( $sString, "#name#", _StringProper1 ($name) )
+	$sString = StringReplace( $sString, "#surname#", _StringProper1 ($surname) )
 	$sString = StringReplace( $sString, "#birthdate#", $fdato )
 	$sString = StringReplace( $sString, "#fnr#", $fnr )
 	$sString = StringReplace( $sString, "#id#", $id )
 	$sString = StringReplace( $sString, "#sex#", $sex )
+	$sString = StringReplace( $sString, "#sexid#", $sexid )
+
 
 	; Write file
-	$fileoutput = StringReplace( $filetemplate, "_", "_"& _StringProper($name & " " & $surname), -1 )
+	$fileoutput = StringReplace( $filetemplate, "_", "_"& _StringProper1($name & " " & $surname), -1 )
 	if $typetext = 2 then
 		$fileoutput = StringReplace( $filetemplate, "_", "_"& StringUpper($name & " " & $surname), -1 )
 	EndIf
 	if FileExists( $fileoutput ) then
 		if MsgBox( 1, "Error", "File "& $fileoutput & " alredy exists. Overwite? ") = 2 then
-			Exit
+			Return
 		EndIf
 		FileDelete( $fileoutput )
 
 	EndIf
 
-	if FileWrite( $fileoutput, $sString ) = 0 then
+	Local $file = FileOpen( $fileoutput, 256+2  )
+
+	if $file = -1 Then
+			MsgBox( 0, "Error", "Can't open file " & $fileoutput )
+			Return
+	EndIf
+
+	if FileWrite( $file, $sString ) = 0 then
 			MsgBox( 0, "Error", "Can't write the file" )
-			Exit
+			Return
 	Endif
 
+	FileClose($file)
+
 	$sString  = ""
-	$sString &= "Name : " & _StringProper( $name & " " & $surname ) & @CRLF
+	$sString &= "Name : " & _StringProper1( $name & " " & $surname ) & @CRLF
 	$sString &= "Fnr  : " & $fnr & @CRLF
 	$sString &= "Fdato: " & $fdato & "  (" & $sex & $age& ")" & @CRLF
 	;$sString &= "Guid : " & $id & @CRLF & @CRLF
@@ -258,3 +278,27 @@ EndFunc
 Func Gender( $personalnummer)
 Return BitAND( StringMid( $personalnummer, 3,1), 0x1)
 EndFunc
+
+; ===============================================================================================================================
+Func _StringProper1($s_String)
+	Local $iX = 0
+	Local $CapNext = 1
+	Local $s_nStr = ""
+	Local $s_CurChar
+	For $iX = 1 To StringLen($s_String)
+		$s_CurChar = StringMid($s_String, $iX, 1)
+		Select
+			Case $CapNext = 1
+				If StringRegExp($s_CurChar, '[a-zA-ZА-яљњћџ' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248)& ChrW(197) & ChrW(229) & ']') Then
+					$s_CurChar = StringUpper($s_CurChar)
+					$CapNext = 0
+				EndIf
+			Case Not StringRegExp($s_CurChar, '[a-zA-ZА-яљњћџ' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248)& ChrW(197) & ChrW(229) & ']')
+				$CapNext = 1
+			Case Else
+				$s_CurChar = StringLower($s_CurChar)
+		EndSelect
+		$s_nStr &= $s_CurChar
+	Next
+	Return $s_nStr
+EndFunc   ;==>_StringProper
