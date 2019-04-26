@@ -125,7 +125,7 @@ Func ParseInput( $arrName )
 
 	; if less than 3
 	if $arrName[0] < 3 then
-		MsgBox( 0, "x", "Navn Etternavn fnr")
+		MsgBox( 0, "Error", "Navn Etternavn fnr")
 		Return
 	endif
 
