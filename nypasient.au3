@@ -194,7 +194,7 @@ Func ParseInput( $arrName )
 		$yy = 2000 + $yy
 	Elseif $pers >899 Then
 		$yy = 1900 + $yy
-	ElseIf $pers < 750 Then
+	ElseIf $pers < 750 AND $yy > 53 Then
 		$yy = 1800 + $yy
 	Else
 		MsgBox( 0, "Error", "Ugyldig Fnr" )
