@@ -14,6 +14,7 @@
 ; 	- When cancel file overwrite return to edit (was Exit from program)
 ; 	- Write to file in Unocode mode.Can handle norwegian chars (was in Ascii)
 ;	- Replaced StringProper to work correctly with norwegian chars
+; 27/04/19 - added tooltip with examples
 ; ================================
 
 #include <Array.au3>
@@ -60,6 +61,7 @@ Local $properItem = GUICtrlCreateMenuItem("Navn Etternavn", $contextmenu)
 Local $upperItem = GUICtrlCreateMenuItem("NAVN ETTERNAVN", $contextmenu)
 
 Global $ctrlName = GUICtrlCreateInput("navn etternavn f.nr", 60, 8, 380, 30 )
+GUICtrlSetTip(-1, "fnr/dnr" & @CRLF & "DDMMYY" & @CRLF & "DDMMYYm" & @CRLF & "DDMMYYYYk")
 GUICtrlSetFont( $ctrlName, 14, 600 )
 GUICtrlSetState($ctrlName, $GUI_FOCUS)
 
