@@ -18,6 +18,7 @@
 ;	  - changed verification algorithms to RegEx
 ;	  - added pasient with only f.dato: ddmmyy(k|m), ddmmyyyy(k|m),
 ; 27/04/19 - added tooltip with examples
+; 28/04/19 - added version number in title (dd.mm.yy.hhmm)
 ; ================================
 
 #include <Array.au3>
