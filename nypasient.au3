@@ -50,10 +50,24 @@ Global $id
 Global $age
 
 Opt('MustDeclareVars', 1)
+#AutoIt3Wrapper_Res_Field = Timestamp|%date%.%time%
 
+Local $ver
+If @Compiled Then
+
+	$ver = FileGetVersion(@ScriptFullPath, "Timestamp")
+	$ver = StringReplace( $ver, "/", "." )
+	$ver = StringReplace( $ver, ":", "" )
+	$ver = StringLeft( $ver, StringLen($ver)-2 )
+
+Else
+
+	$ver = "Not compiled"
+
+EndIf
 
 ; Create input
-GUICreate("Create new pasient", 450, 48)
+GUICreate("Create new pasient - " & $ver, 450, 48)
 
 Global $ctrlFile = GUICtrlCreateLabel("Pasient", 8, 16)
 ;GUICtrlSetFont( $ctrlName, 10, 600 )
