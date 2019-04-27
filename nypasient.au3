@@ -10,14 +10,14 @@
 ; 15/04/19 -
 ; 17/04/19 - added change filename register by right click
 ; 23/04/19 - Fixed bugs
-;	- Sex now identifed correctly - by 9th digit (was by 7th)
+;	  - Sex now identifed correctly - by 9th digit (was by 7th)
 ; 	- When cancel file overwrite return to edit (was Exit from program)
 ; 	- Write to file in Unocode mode.Can handle norwegian chars (was in Ascii)
 ;	- Replaced StringProper to work correctly with norwegian chars
 ; 26/04/19
-;	- changed verification algorithms to RegEx
-;	- added pasient with only f.dato: ddmmyy(k|m), ddmmyyyy(k|m),
-;
+;	  - changed verification algorithms to RegEx
+;	  - added pasient with only f.dato: ddmmyy(k|m), ddmmyyyy(k|m),
+; 27/04/19 - added tooltip with examples
 ; ================================
 
 #include <Array.au3>
@@ -63,9 +63,10 @@ Local $contextmenu = GUICtrlCreateContextMenu($ctrlFile)
 Local $properItem = GUICtrlCreateMenuItem("Navn Etternavn", $contextmenu)
 Local $upperItem = GUICtrlCreateMenuItem("NAVN ETTERNAVN", $contextmenu)
 
-Global $ctrlName = GUICtrlCreateInput("navn etternavn f.nr", 60, 8, 380, 30)
+Global $ctrlName = GUICtrlCreateInput("navn etternavn f.nr", 60, 8, 380, 30 )
 GUICtrlSetTip(-1, "fnr/dnr" & @CRLF & "DDMMYY" & @CRLF & "DDMMYYm" & @CRLF & "DDMMYYYYk")
-GUICtrlSetFont($ctrlName, 14, 600)
+GUICtrlSetFont( $ctrlName, 14, 600 )
+
 GUICtrlSetState($ctrlName, $GUI_FOCUS)
 
 GUISetState() ; will display an empty dialog box
