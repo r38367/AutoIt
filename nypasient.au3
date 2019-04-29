@@ -233,7 +233,7 @@ Func ParseInput($arrName)
 		$fnr = StringLeft( $arrName[$arrName[0]],4 ) & StringMid( $arrName[$arrName[0]], 7, 2 )
 
 		$pers = "000"
-		if StringMid( $arrName[$arrName[0]], 5,2) = "20" then $pers = "500"
+		$yy = StringMid( $arrName[$arrName[0]], 5,4) 
 
 	Else
 		MsgBox( 0, "Error", "Ugyldig Fnr")
@@ -269,18 +269,20 @@ Func ParseInput($arrName)
 	; 500-999 - 2000-2039
 	; 900-999 - 1940-1999
 
-	If $pers < 500 Then
-		$yy = 1900 + $yy
-	ElseIf $yy < 40 Then
-		$yy = 2000 + $yy
-	ElseIf $pers > 899 Then
-		$yy = 1900 + $yy
-	ElseIf $pers < 750 and $yy > 53 Then
-		$yy = 1800 + $yy
-	Else
-		MsgBox(0, "Error", "Ugyldig Fnr")
-		Return
-	EndIf
+	if $yy < 100 then 
+		If $pers < 500 Then
+			$yy = 1900 + $yy
+		ElseIf $yy < 40 Then
+			$yy = 2000 + $yy
+		ElseIf $pers > 899 Then
+			$yy = 1900 + $yy
+		ElseIf $pers < 750 and $yy > 53 Then
+			$yy = 1800 + $yy
+		Else
+			MsgBox(0, "Error", "Ugyldig Fnr")
+			Return
+		EndIf
+	Endif 
 
 	; Get fdato
 	$fdato = $yy & "-" & $mm & "-" & $dd
