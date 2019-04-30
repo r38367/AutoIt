@@ -2,8 +2,6 @@
 #AutoIt3Wrapper_Outfile=nypasient.exe
 #AutoIt3Wrapper_Run_Before=updversion.exe
 #endregion ;**** Directives created by AutoIt3Wrapper_GUI ****
-;~ #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-
 
 ; ================================
 ; 13/04/19 - initial prototype
@@ -19,7 +17,9 @@
 ;	  - added pasient with only f.dato: ddmmyy(k|m), ddmmyyyy(k|m),
 ; 27/04/19 - added tooltip with examples
 ; 28/04/19 - added version number in title (dd.mm.yy.hhmm)
-; 30/04/19 - fixed bug #9: No error when template file is absent in working folder 
+; 30/04/19
+; 	- fixed bug #7: failed year with 1800' in long fdato form
+; 	- fixed bug #9: No error when template file is absent in working folder
 ; ================================
 
 #include <Array.au3>
@@ -152,7 +152,6 @@ Func ParseInput($arrName)
 		Return
 	EndIf
 
-
 ; possible input
 ; ddmmyyxx0xx
 ; 4dmmyyxx0xx
@@ -162,6 +161,8 @@ Func ParseInput($arrName)
 ; ddmmyyyy -> ddmmyy20900
 ; ddmmyyyyK -> ddmmyy10000
 ; ddmmyyyyM -> ddmmyy20100
+
+	$dnr = False
 
 	; if fnr/dnr goes first
 	if StringRegExp( $arrName[1], "^([04][1-9]|[1256][0-9]|[37][01])(0[1-9]|1[012])(\d){7}$") Then
@@ -175,8 +176,10 @@ Func ParseInput($arrName)
 		; Get Sex: xxxxxx xx0xx - even - kvinne, odd - mann
 		$sexid = 2 - mod( StringMid( $fnr, 9, 1), 2) ; 1->1 mann, 0->2 kvinne
 
-		; get pers number for age
-		$pers = StringMid( $fnr, 7, 3)
+		; get f.date
+		$dd = StringMid( $fnr, 1, 2)
+		$mm = StringMid( $fnr, 3, 2)
+		$yy = StringMid( $fnr, 5, 2)
 
 	; if fnr goes last
 	Elseif StringRegExp( $arrName[$arrName[0]], "^([04][1-9]|[1256][0-9]|[37][01])(0[1-9]|1[012])(\d){7}$") then
@@ -191,7 +194,9 @@ Func ParseInput($arrName)
 		$sexid = 2 - mod( StringMid( $fnr, 9, 1), 2) ; 1->1-mann, 0->2-kvinne
 
 		; get pers number for age
-		$pers = StringMid( $fnr, 7, 3)
+		$dd = StringMid( $fnr, 1, 2)
+		$mm = StringMid( $fnr, 3, 2)
+		$yy = StringMid( $fnr, 5, 2)
 
 	; if only f.date goes last with(out) sex
 	Elseif StringRegExp( $arrName[$arrName[0]], "^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[012])[0-9][0-9][kKmM]?$") then
@@ -212,7 +217,9 @@ Func ParseInput($arrName)
 			$sexid = 9
 		EndIf
 
-		$pers = "000"
+		$dd = StringMid( $fnr, 1, 2)
+		$mm = StringMid( $fnr, 3, 2)
+		$yy = "19" & StringMid( $fnr, 5,2)
 
 ; if only f.date goes last with(out) sex
 	Elseif StringRegExp( $arrName[$arrName[0]], "^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[012])(18|19|20)[0-9][0-9][kKmM]?$") then
@@ -233,25 +240,20 @@ Func ParseInput($arrName)
 
 		$fnr = StringLeft( $arrName[$arrName[0]],4 ) & StringMid( $arrName[$arrName[0]], 7, 2 )
 
-		$pers = "000"
-		$yy = StringMid( $arrName[$arrName[0]], 5,4) 
+
+		$dd = StringMid( $fnr, 1, 2)
+		$mm = StringMid( $fnr, 3, 2)
+		$yy = StringMid( $arrName[$arrName[0]], 5,4)
+
 
 	Else
 		MsgBox( 0, "Error", "Ugyldig Fnr")
 		Return
 	EndIf
 
-	$dnr = False
 
-	$dd = StringMid( $fnr, 1, 2)
-	If $dd > 40 Then
-		$dnr = True
-		$dd -= 40
-		If $dd < 10 Then $dd = "0" & $dd
-	EndIf
 
-	Local $mm = StringMid( $fnr, 3, 2)
-	Local $yy = StringMid( $fnr, 5, 2)
+
 
 	; Get Sex
 	; xxxxxx xx0xx - 0 - kvinne, 1 - mann
@@ -270,7 +272,18 @@ Func ParseInput($arrName)
 	; 500-999 - 2000-2039
 	; 900-999 - 1940-1999
 
-	if $yy < 100 then 
+
+	if $yy < 100 then
+
+		If $dd > 40 Then
+			$dnr = True
+			$dd -= 40
+			If $dd < 10 Then $dd = "0" & $dd
+		EndIf
+
+		$pers = StringMid( $fnr, 7, 3)
+
+
 		If $pers < 500 Then
 			$yy = 1900 + $yy
 		ElseIf $yy < 40 Then
@@ -283,7 +296,9 @@ Func ParseInput($arrName)
 			MsgBox(0, "Error", "Ugyldig Fnr")
 			Return
 		EndIf
-	Endif 
+
+	Endif
+
 
 	; Get fdato
 	$fdato = $yy & "-" & $mm & "-" & $dd
@@ -303,6 +318,7 @@ Func ParseInput($arrName)
 	; Read file
 	$filetemplate = @WorkingDir & "\auto_.xml"
 	$sString = FileRead($filetemplate)
+
 	If @error = 1 Then 
 		MsgBox(0, "Error", "Can't open template file " & @CRLF & $filetemplate)
 		Exit
@@ -377,100 +393,6 @@ EndFunc   ;==>_GenerateGUID
 Func Gender($personalnummer)
 	Return BitAND(StringMid($personalnummer, 3, 1), 0x1)
 EndFunc   ;==>Gender
-;~ ; -----------------------------------------------------------------------------
-;~ ; Function: Exit handler
-;~ ; -----------------------------------------------------------------------------
-;~ Func MyExitFunc()
-
-;~    ;Msgbox(0,"Exit","Exiting..." & @CRLF 	)
-
-;~    if isObj($oIE)  Then
-;~ 		ConsoleWrite( "*** Closing IE" & @CRLF )
-;~ 		_IEQuit($oIE)
-;~    EndIf
-
-;~    if isObj($oSummary) then
-;~ 		ConsoleWrite( "*** Closing Excel" & @CRLF )
-;~ 		_ExcelBookClose( $oSummary, 0 )
-;~    EndIf
-
-;~    if isObj($tdc) > 0 Then
-;~ 		ConsoleWrite( "*** Closing TDC" & @CRLF )
-;~ 		$tdc.DisconnectProject()
-;~ 		$tdc.ReleaseConnection()
-;~    EndIf
-
-;~ Endfunc
-#cs
-	namespace LIB.Validation
-	{
-	public class FodselsNummer
-	{
-	public enum Gender : int
-	{
-	Female = 0,
-	Male = 1
-	}
-
-	public static Gender Check(string fnr)
-	{
-	if (fnr.Length != 11)
-	throw new InvalidLengthException();
-
-	// Valid date?  D-Number = +4
-	string Date = (fnr[0] <= '3') ? fnr.Substring(0, 6) : ((fnr[0] - '4') + fnr.Substring(1, 5));
-	DateTime tmp;
-	if (DateTime.TryParseExact(Date, "ddMMyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out tmp) == false)
-	throw new InvalidDateException();
-
-	int[] n = new int[11];
-	int tmp2 = 0;
-	for (int i = 0; i < 11; i++)
-	if (int.TryParse(fnr[i].ToString(), out tmp2))
-	n[i] = tmp2;
-	else
-	throw new InvalidCharactersException();
-
-	// Control number 1
-	int k1 = 11 - (3 * n[0] + 7 * n[1] + 6 * n[2] + 1 * n[3] + 8 * n[4] + 9 * n[5] + 4 * n[6] + 5 * n[7] + 2 * n[8]) % 11;
-	if (k1 == 11) k1 = 0;
-
-	if (k1 == 10 || k1 != n[9])
-	throw new InvalidControlNumberException();
-
-	// Control number 2
-	int k2 = 11 - (5 * n[0] + 4 * n[1] + 3 * n[2] + 2 * n[3] + 7 * n[4] + 6 * n[5] + 5 * n[6] + 4 * n[7] + 3 * n[8] + 2 * k1) % 11;
-	if (k2 == 11) k2 = 0;
-
-	if (k2 == 10 || k2 != n[10])
-	throw new InvalidControlNumberException();
-
-	// Sex
-	return (Gender)(n[8] & 1);
-	}
-
-	public class InvalidFodselsNumberException : ApplicationException
-	{
-	}
-
-	public class InvalidCharactersException : InvalidFodselsNumberException
-	{
-	}
-
-	public class InvalidControlNumberException : InvalidFodselsNumberException
-	{
-	}
-
-	public class InvalidDateException : InvalidFodselsNumberException
-	{
-	}
-
-	public class InvalidLengthException : InvalidFodselsNumberException
-	{
-	}
-	}
-	}
-#ce
 
 ; ===============================================================================================================================
 Func _StringProper1($s_String)
@@ -494,4 +416,4 @@ Func _StringProper1($s_String)
 		$s_nStr &= $s_CurChar
 	Next
 	Return $s_nStr
-EndFunc   ;==>_StringProper1
+EndFunc ;==>_StringProper1
