@@ -303,7 +303,7 @@ Func ParseInput($arrName)
 	; Read file
 	$filetemplate = @WorkingDir & "\auto_.xml"
 	$sString = FileRead($filetemplate)
-	If @error = 1 Then
+	If @error = 1 Then 
 		MsgBox(0, "Error", "Can't open template file " & @CRLF & $filetemplate)
 		Exit
 	EndIf
