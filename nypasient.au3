@@ -19,6 +19,7 @@
 ;	  - added pasient with only f.dato: ddmmyy(k|m), ddmmyyyy(k|m),
 ; 27/04/19 - added tooltip with examples
 ; 28/04/19 - added version number in title (dd.mm.yy.hhmm)
+; 30/04/19 - fixed bug #9: No error when template file is absent in working folder 
 ; ================================
 
 #include <Array.au3>
