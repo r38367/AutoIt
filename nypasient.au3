@@ -19,11 +19,9 @@
 ;	  - added pasient with only f.dato: ddmmyy(k|m), ddmmyyyy(k|m),
 ; 27/04/19 - added tooltip with examples
 ; 28/04/19 - added version number in title (dd.mm.yy.hhmm)
-; TODO:
-;~ - do not supprt format fnr ddmmyyyyy(KM)
-;~ - edit GetElement to get it done
-;~ - change GetAge, GetCentury, ...
-
+;TODO:
+; - change GetAge, GetCentury, ...
+;
 ; ================================
 
 #include <Array.au3>
@@ -210,9 +208,9 @@ Func GetNames( $input, byref $name, byref $surname, byref $fnr )
 EndFunc
 
 ; ==================================
-; Get Navn
+; Get Elements
 ; Return:
-; 	- Navn og Etternavn
+; 	- Fnr, Fdato, SexId
 ; ==================================
 Func GetElements( $input, byref $fnr, byref $fdato, byref $sexid )
 
@@ -226,25 +224,20 @@ Func GetElements( $input, byref $fnr, byref $fdato, byref $sexid )
 			$sexid = 2 - mod( StringMid( $input, 9, 1), 2) ; odd=2, even=1
 			$fnr = $input
 			$fdato = GetFdato( $input )
-			Return 0
+			return 0
 
 	; if short fdato - ddmmyy(s)
 	elseif StringRegExp( $input, "^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[012])[0-9][0-9][kKmM]?$") then
 			$sexid = GetSexId(  StringRight($input,1) )
 			$fnr = StringLeft( $input, 6)
-			$fdato = GetFdato( StringLeft($input,6) )
-
-
-
+			$fdato = GetFdato( $input )
 			return 0
 
 	; if long fdato - ddmmyyyy(s)
 	elseif StringRegExp( $input, "^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[012])\d{4}[kKmM]?$") then
 			$sexid = GetSexId(  StringRight($input,1) )
 			$fnr = StringRegExpReplace( $input, "(\d\d\d\d)\d\d(\d\d).?", "$1$2")
-			$fdato = GetFdato( StringLeft($input,8) )
-
-
+			$fdato = GetFdato( $input )
 			return 0
 
 	EndIf
@@ -256,13 +249,13 @@ EndFunc
 
 ; -----------------------------------------------------------------------------
 ; Function: Create pasient file
-; Input: array arg[]
-;	arg[0] - name
-;	arg[1] - surname
-; 	arg[2] - fnr
-; 	arg[3] - fdato
-;	arg[4] - sexid (1-mann, 2-kvinne, 9-unknown)
-; 	arg[6] - namecase (0-lower, 1-upper)
+; Input:
+;	0 - name
+;	1 - surname
+; 	2 - fnr
+; 	3 - fdato
+;	4 - sexid (1-mann, 2-kvinne, 9-unknown)
+; 	6 - namecase (0-lower, 1-upper)
 ; -----------------------------------------------------------------------------
 Func CreatePasientFile( $name,$surname, $fnr, $fdato, $sexid )
 	Local $id, $sex, $age
@@ -584,6 +577,3 @@ func FlagError( $err )
 	MsgBox( 0, "Error" , $text )
 
 EndFunc
-
-
-
