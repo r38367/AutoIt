@@ -302,8 +302,8 @@ Func ParseInput($arrName)
 	; Read file
 	$filetemplate = @WorkingDir & "\auto_.xml"
 	$sString = FileRead($filetemplate)
-	If @error = -1 Then
-		MsgBox(0, "Error", "Can't open file" & $filetemplate)
+	If @error = 1 Then
+		MsgBox(0, "Error", "Can't open template file" & $filetemplate)
 		Exit
 	EndIf
 	$sString = StringReplace($sString, "#name#", _StringProper1($name))
