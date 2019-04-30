@@ -19,6 +19,7 @@
 ;	  - added pasient with only f.dato: ddmmyy(k|m), ddmmyyyy(k|m),
 ; 27/04/19 - added tooltip with examples
 ; 28/04/19 - added version number in title (dd.mm.yy.hhmm)
+; 30/04/19 - fixed bug #9: No error when template file is absent in working folder 
 ; ================================
 
 #include <Array.au3>
@@ -302,8 +303,8 @@ Func ParseInput($arrName)
 	; Read file
 	$filetemplate = @WorkingDir & "\auto_.xml"
 	$sString = FileRead($filetemplate)
-	If @error = -1 Then
-		MsgBox(0, "Error", "Can't open file" & $filetemplate)
+	If @error = 1 Then
+		MsgBox(0, "Error", "Can't open template file" & $filetemplate)
 		Exit
 	EndIf
 	$sString = StringReplace($sString, "#name#", _StringProper1($name))
