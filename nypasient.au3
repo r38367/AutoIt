@@ -2,15 +2,6 @@
 #AutoIt3Wrapper_Outfile=nypasient.exe
 #AutoIt3Wrapper_Run_Before=updversion.exe
 #endregion ;**** Directives created by AutoIt3Wrapper_GUI ****
-;~ #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-
-
-#region ;**** Directives created by AutoIt3Wrapper_GUI ****
-#AutoIt3Wrapper_Outfile=nypasient.exe
-#AutoIt3Wrapper_Run_Before=updversion.exe
-#endregion ;**** Directives created by AutoIt3Wrapper_GUI ****
-;~ #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
-
 
 ; ================================
 ; 13/04/19 - initial prototype
@@ -185,15 +176,8 @@ Func ParseInput($arrName)
 		; Get Sex: xxxxxx xx0xx - even - kvinne, odd - mann
 		$sexid = 2 - mod( StringMid( $fnr, 9, 1), 2) ; 1->1 mann, 0->2 kvinne
 
-		; get pers number for age
-		$pers = StringMid( $fnr, 7, 3)
+		; get f.date
 		$dd = StringMid( $fnr, 1, 2)
-		If $dd > 40 Then
-			$dnr = True
-			$dd -= 40
-			If $dd < 10 Then $dd = "0" & $dd
-		EndIf
-
 		$mm = StringMid( $fnr, 3, 2)
 		$yy = StringMid( $fnr, 5, 2)
 
@@ -210,15 +194,7 @@ Func ParseInput($arrName)
 		$sexid = 2 - mod( StringMid( $fnr, 9, 1), 2) ; 1->1-mann, 0->2-kvinne
 
 		; get pers number for age
-		$pers = StringMid( $fnr, 7, 3)
-
 		$dd = StringMid( $fnr, 1, 2)
-		If $dd > 40 Then
-			$dnr = True
-			$dd -= 40
-			If $dd < 10 Then $dd = "0" & $dd
-		EndIf
-
 		$mm = StringMid( $fnr, 3, 2)
 		$yy = StringMid( $fnr, 5, 2)
 
@@ -295,6 +271,15 @@ Func ParseInput($arrName)
 	; 900-999 - 1940-1999
 
 	if $yy < 100 then
+
+		If $dd > 40 Then
+			$dnr = True
+			$dd -= 40
+			If $dd < 10 Then $dd = "0" & $dd
+		EndIf
+
+		$pers = StringMid( $fnr, 7, 3)
+
 		If $pers < 500 Then
 			$yy = 1900 + $yy
 		ElseIf $yy < 40 Then
