@@ -20,6 +20,8 @@
 ; 30/04/19
 ; 	- fixed bug #7: failed year with 1800' in long fdato form
 ; 	- fixed bug #9: No error when template file is absent in working folder
+; 08/05/19
+;	- fixed bug #17: added 0-9 to name in proper
 ; ================================
 
 #include <Array.au3>
@@ -404,11 +406,11 @@ Func _StringProper1($s_String)
 		$s_CurChar = StringMid($s_String, $iX, 1)
 		Select
 			Case $CapNext = 1
-				If StringRegExp($s_CurChar, '[a-zA-ZА-яљњћџ' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248) & ChrW(197) & ChrW(229) & ']') Then
+				If StringRegExp($s_CurChar, '[a-zA-ZА-я0-9' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248) & ChrW(197) & ChrW(229) & ']') Then
 					$s_CurChar = StringUpper($s_CurChar)
 					$CapNext = 0
 				EndIf
-			Case Not StringRegExp($s_CurChar, '[a-zA-ZА-яљњћџ' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248) & ChrW(197) & ChrW(229) & ']')
+			Case Not StringRegExp($s_CurChar, '[a-zA-ZА-я0-9' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248) & ChrW(197) & ChrW(229) & ']')
 				$CapNext = 1
 			Case Else
 				$s_CurChar = StringLower($s_CurChar)
