@@ -20,6 +20,8 @@
 ; 30/04/19
 ; 	- fixed bug #7: failed year with 1800' in long fdato form
 ; 	- fixed bug #9: No error when template file is absent in working folder
+; 08/05/19
+;	- fixed bug #17: added 0-9 to name in proper
 ; ================================
 
 #include <Array.au3>
