@@ -7,7 +7,7 @@
 
 ; ================================
 ; 13/04/19 - initial prototype
-; 15/04/19 -
+; 15/04/19 v1. ==========
 ; 17/04/19 - added change filename register by right click
 ; 23/04/19 - Fixed bugs
 ;	  - Sex now identifed correctly - by 9th digit (was by 7th)
@@ -19,8 +19,15 @@
 ;	  - added pasient with only f.dato: ddmmyy(k|m), ddmmyyyy(k|m),
 ; 27/04/19 - added tooltip with examples
 ; 28/04/19 - added version number in title (dd.mm.yy.hhmm)
-;TODO:
-; - change GetAge, GetCentury, ...
+; 30/04/19 v2. ==========
+; 	- redesigned with functions front/backend
+; 	- added unit testing
+;	- added support for ddmmyyyy(s)
+; 	- added automatic centure for ddmmyy (if fnr.year < now.year -> 1900, otherwise 2000
+; 08/05/19 v2.1
+;	- fixed error "no auto_.xml"
+; 	- fixed error in text "fГёdselsnummer"
+;	- fiexed proper in names with numbers
 ;
 ; ================================
 
@@ -161,10 +168,11 @@ Func ProcessInput( $input )
 	$err = CreatePasientFile($name, $surname, $fnr, $fdato, $sexid )
 	if $err > 0 then
 		FlagError( $err )
+		Return
 	EndIf
 
 
-	MSgBox( 0, "ok", "file created" )
+								  
 
 EndFunc
 
@@ -229,14 +237,14 @@ Func GetElements( $input, byref $fnr, byref $fdato, byref $sexid )
 	; if short fdato - ddmmyy(s)
 	elseif StringRegExp( $input, "^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[012])[0-9][0-9][kKmM]?$") then
 			$sexid = GetSexId(  StringRight($input,1) )
-			$fnr = StringLeft( $input, 6)
+			$fnr = 0 ; StringLeft( $input, 6)
 			$fdato = GetFdato( $input )
 			return 0
 
 	; if long fdato - ddmmyyyy(s)
 	elseif StringRegExp( $input, "^(0[1-9]|[12][0-9]|3[01])(0[1-9]|1[012])\d{4}[kKmM]?$") then
 			$sexid = GetSexId(  StringRight($input,1) )
-			$fnr = StringRegExpReplace( $input, "(\d\d\d\d)\d\d(\d\d).?", "$1$2")
+			$fnr = 0 ;StringRegExpReplace( $input, "(\d\d\d\d)\d\d(\d\d).?", "$1$2")
 			$fdato = GetFdato( $input )
 			return 0
 
@@ -278,7 +286,7 @@ Func CreatePasientFile( $name,$surname, $fnr, $fdato, $sexid )
 	; Read file
 	$filetemplate = @WorkingDir & "\auto_.xml"
 	$sString = FileRead($filetemplate)
-	If @error = -1 Then
+	If @error = 1 Then
 		MsgBox(0, "Error", "Can't open file" & $filetemplate)
 		Exit
 	EndIf
@@ -287,9 +295,17 @@ Func CreatePasientFile( $name,$surname, $fnr, $fdato, $sexid )
 	$sString = StringReplace($sString, "#surname#", $surname)
 	$sString = StringReplace($sString, "#birthdate#", $fdato)
 	$sString = StringReplace($sString, "#fnr#", $fnr)
-	$sString = StringReplace($sString, "#id#", $id)
+												
 	$sString = StringReplace($sString, "#sex#", $sex)
 	$sString = StringReplace($sString, "#sexid#", $sexid)
+	$sString = StringReplace($sString, "#id#", $id)
+
+	if $fnr = 0 then
+		$sString = StringRegExpReplace( $sString, "(?s)(?i)<Ident>.*?FNR.*?</Ident>", "" )
+;	Else
+;		$sString = StringRegExpReplace( $sString, "(?s)(?i)<Kjonn.*?/>", "" )
+	endif
+
 
 	; change type
 	if isDnr($fnr)  Then
@@ -361,11 +377,11 @@ Func _StringProper1($s_String)
 		$s_CurChar = StringMid($s_String, $iX, 1)
 		Select
 			Case $CapNext = 1
-				If StringRegExp($s_CurChar, '[a-zA-Z0-9А-я' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248) & ChrW(197) & ChrW(229) & ']') Then
+				If StringRegExp($s_CurChar, '[a-zA-ZА-я0-9' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248) & ChrW(197) & ChrW(229) & ']') Then
 					$s_CurChar = StringUpper($s_CurChar)
 					$CapNext = 0
 				EndIf
-			Case Not StringRegExp($s_CurChar, '[a-zA-Z0-9А-я' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248) & ChrW(197) & ChrW(229) & ']')
+			Case Not StringRegExp($s_CurChar, '[a-zA-ZА-я0-9' & ChrW(198) & ChrW(230) & ChrW(216) & ChrW(248) & ChrW(197) & ChrW(229) & ']')
 				$CapNext = 1
 			Case Else
 				$s_CurChar = StringLower($s_CurChar)
@@ -564,7 +580,7 @@ func FlagError( $err )
 		case $ERR_FORMAT
 			$text = "name surname fnr"
 		case $ERR_FNR
-			$text = "ugyldig fødslesnummer"
+			$text = "ugyldig f" & ChrW(248) &  "dselsnummer"
 		case 3
 			$text = "3"
 		case 4
