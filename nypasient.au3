@@ -22,6 +22,8 @@
 ; 	- fixed bug #9: No error when template file is absent in working folder
 ; 08/05/19
 ;	- fixed bug #17: added 0-9 to name in proper
+; 15/07/19
+;	- fixed bug #19: allow tab as separator in input field
 ; ================================
 
 #include <Array.au3>
@@ -101,7 +103,7 @@ Do
 	Switch $msg
 		Case $ctrlName
 
-			$arrName = StringSplit(StringStripWS(GUICtrlRead($ctrlName), 7), " ")
+			$arrName = StringSplit(StringStripWS(StringRegExpReplace(GUICtrlRead($ctrlName),"\s+", " "), 7), " ")
 			ParseInput($arrName)
 			GUICtrlSetState($ctrlName, $GUI_FOCUS)
 
